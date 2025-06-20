@@ -2,6 +2,7 @@ from colorama import Fore, Back, Style
 
 players = [] # player = [matches, lives]
 ongoingMatches = [] # match = [playerIndex1, playerIndex2]
+completeMatches = [] # match = [playerIndexWin, playerIndexLose]
 
 def main():
     # Show the main menu
@@ -46,6 +47,8 @@ def menu():
                     set_ongoing_match()
                 case 5:
                     display_ongoing_matches()
+                case 6:
+                    set_match_result()
 
                 case _:
                     print(Fore.RED + "That was not a valid option")
@@ -58,17 +61,30 @@ def add_players_menu():
     # Ask how many players the user wants to add
     print("How many players would you like to add?")
     numPlayers = input()
-    if numPlayers.isdigit():
-        numPlayersInt = int(numPlayers)
-        add_players(numPlayersInt)
-        print(Fore.GREEN + numPlayers + " player added successfully!")
-        print(Style.RESET_ALL)
-    else:
+    if not numPlayers.isdigit():
         print(Fore.RED + "That was not a valid input")
         print(Style.RESET_ALL)
+        return
+
+    numPlayersInt = int(numPlayers)
+    add_players(numPlayersInt)
+    print(Fore.GREEN + numPlayers + " player added successfully!")
+    print(Style.RESET_ALL)
+
 def add_players(numPlayers: int):
     for i in range(numPlayers):
         players.append([0,2])
+
+def display_players():
+    print(Fore.YELLOW + f"{"Index":^10} {"Matches":^10} {"Lives":^10}")
+    for i in range(len(players)):
+        matches = players[i][0]
+        lives = players[i][1]
+        if lives == 0:
+            print(Fore.RED + f"{i:^10} {matches:^10} {lives:^10}" + Fore.YELLOW)
+        else:
+            print(f"{i:^10} {matches:^10} {lives:^10}")
+    print(Style.RESET_ALL)
 
 def set_ongoing_match():
     # Have the player type the indeces of two players and save it as an ongoing match
@@ -78,23 +94,90 @@ def set_ongoing_match():
     print("Who is the second player?")
     player2Index = input()
 
-    if player1Index.isdigit() and player2Index.isdigit():
-        player1Index = int(player1Index)
-        player2Index = int(player2Index)
-        for match in ongoingMatches:
-            if (player1Index in match) or (player2Index in match):
-                print(Fore.RED + "One of those players is already in an ongoing match")
-                print(Style.RESET_ALL)
-                return
-        ongoingMatches.append([player1Index, player2Index])
-        print(Fore.GREEN + "The match between " + str(player1Index) + " and " + str(player2Index) + " has been added!")
-        print(Style.RESET_ALL)
-    else:
+    if not player1Index.isdigit() or not player2Index.isdigit():
         print(Fore.RED + "Please enter integers")
         print(Style.RESET_ALL)
-def display_ongoing_matches():
+        return
+
+    player1Index = int(player1Index)
+    player2Index = int(player2Index)
+    if not (player1Index < len(players)) or not (player2Index < len(players)):
+        print(Fore.RED + "Those player numbers are out of range")
+        print(Style.RESET_ALL)
+        return
+    elif players[player1Index][1] == 0 or players[player2Index][1] == 0:
+        print(Fore.RED + "Only players with lives can enter matches")
+        print(Style.RESET_ALL)
+        return
+    elif player1Index == player2Index:
+        print(Fore.RED + "The two players must be different")
+        print(Style.RESET_ALL)
+        return        
+
     for match in ongoingMatches:
-        print(str(match[0]) + " is facing " + str(match[1]))
+        if (player1Index in match) or (player2Index in match):
+            print(Fore.RED + "One of those players is already in an ongoing match")
+            print(Style.RESET_ALL)
+            return
+
+    ongoingMatches.append([player1Index, player2Index])
+    print(Fore.GREEN + "The match between " + str(player1Index) + " and " + str(player2Index) + " has been added!")
+    print(Style.RESET_ALL)
+
+def display_ongoing_matches():
+    print(Fore.YELLOW + f"{"Index":^5}" + f"{"Matchup":^20}")
+    for matchIndex in range(len(ongoingMatches)):
+        print(f"{str(matchIndex):^5}" + f"{str(ongoingMatches[matchIndex][0]) + " is facing " + str(ongoingMatches[matchIndex][1]):^20}")
+    print(Style.RESET_ALL)
+
+def set_match_result():
+    # List the ongoing matches with indeces and ask the player which to resolve
+    display_ongoing_matches()
+    print("Which match would you like to resolve?")
+    matchChoice = input()
+    if not matchChoice.isdigit():
+        print(Fore.RED + "That was not a number")
+        print(Style.RESET_ALL)
+        return
+    matchChoice = int(matchChoice)
+    if not matchChoice < len(ongoingMatches):
+        print(Fore.RED + "That Index is out of range")
+        print(Style.RESET_ALL)
+        return
+
+    match = ongoingMatches[matchChoice]
+    print("Which player won this match?")
+    playerChoice = input()
+    if not playerChoice.isdigit():
+        print(Fore.RED + "That was not a number")
+        print(Style.RESET_ALL)
+        return
+    playerChoice = int(playerChoice)
+    if not playerChoice in match:
+        print(Fore.RED + "That player is not in this match")
+        print(Style.RESET_ALL)
+        return
+    
+    # Set the winner of the match and alter the involved player values
+    winIndex = playerChoice
+
+    loseIndex = 0
+    if winIndex == match[0]:
+        loseIndex = match[1]
+    else:
+        loseIndex = match[0]
+    
+    #Handle the win
+    players[winIndex][0]+=1
+
+    #Handle the loss
+    players[loseIndex][0]+=1
+    players[loseIndex][1]-=1
+
+    #Handle the match
+    completeMatches.append([winIndex, loseIndex])
+    ongoingMatches.pop(matchChoice)
+
 
 
 # def generate_matchups_menu():
@@ -159,17 +242,6 @@ def display_ongoing_matches():
 #         if (players[i][0] < players[primedPlayer][0]) or ((players[i][0] == players[primedPlayer][0]) and (players[i][1] < players[primedPlayer][1])):
 #             primedPlayer = i
 #     return primedPlayer
-
-
-def display_players():
-    print(f"{"Name":^10} {"Matches":^10} {"Lives":^10}")
-    for i in range(len(players)):
-        # name = int_to_letter(i)
-        name = i
-        print(f"{name:^10} {players[i][0]:^10} {players[i][1]:^10}")
-
-
-
 # Helper functions
 # def int_to_letter(value):
 #     # Maps integers to capital letters. 0 to A, 1 to B, etc.
