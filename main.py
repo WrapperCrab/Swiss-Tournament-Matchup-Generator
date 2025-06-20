@@ -16,15 +16,15 @@ def menu():
         print("What would you like to do?")
 
         print("1) Add Players")
-        print("2) Display Players")
+        print("2) Display Players\n")
 
-        print("3) Generate Best Next Matchups")
+        print("3) Generate Best Next Matchups\n")
 
         print("4) Set Ongoing Match")
-        print("5) Display Ongoing Matches")
+        print("5) Display Ongoing Matches\n")
 
         print("6) Set Match Result")
-        print("7) Display Match Results")
+        print("7) Display Match Results\n")
 
         print("0) Exit Program")
         print("")
@@ -49,7 +49,8 @@ def menu():
                     display_ongoing_matches()
                 case 6:
                     set_match_result()
-
+                case 7:
+                    display_match_results()
                 case _:
                     print(Fore.RED + "That was not a valid option")
                     print(Style.RESET_ALL)
@@ -178,7 +179,12 @@ def set_match_result():
     completeMatches.append([winIndex, loseIndex])
     ongoingMatches.pop(matchChoice)
 
-
+def display_match_results():
+    # Display a list of every completed match in completeMatches
+    print(Fore.YELLOW)
+    for match in completeMatches:
+        print(str(match[0]) + " defeated " + str(match[1]))
+    print(Style.RESET_ALL)
 
 # def generate_matchups_menu():
 #     keepgoing = True
