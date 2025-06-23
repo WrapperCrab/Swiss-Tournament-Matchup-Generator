@@ -41,8 +41,8 @@ def menu():
                     add_players_menu()
                 case 2:
                     display_players()
-                case 3:
-                    generate_matchups_menu()
+                # case 3:
+                #     generate_matchups_menu()
                 case 4:
                     display_players()
                     set_ongoing_match()
@@ -249,12 +249,17 @@ def secret_menu(): #!!! To be used to edit matches as well
 
     keepgoing = True
     while keepgoing:
-        display_players()
-
-        print(Fore.BLUE)
         print("What would you like to edit?")
 
         print("1) Player")
+        print("2) Delete Player\n")
+
+        print("3) Ongoing Matches")
+        print("4) Delete Ongoing Match\n")
+
+        print("5) Complete Matches")
+        print("6) Delete Complete Match\n")
+
         print("0) Exit Secret Area")
         print("")
 
@@ -268,6 +273,16 @@ def secret_menu(): #!!! To be used to edit matches as well
 
                 case 1:
                     set_input_player_values()
+                case 2:
+                    delete_player()
+                case 3:
+                    set_input_ongoing_match_values()
+                case 4:
+                    delete_ongoing_match()
+                case 5:
+                    set_input_complete_match_values()
+                case 6:
+                    delete_complete_match()
                     
                 case _:
                     print(Fore.RED + "That was not a valid option" + Fore.BLUE)
@@ -275,6 +290,9 @@ def secret_menu(): #!!! To be used to edit matches as well
             print(Fore.RED + "That was not a valid option" + Fore.BLUE)
 
 def set_input_player_values():
+    display_players()
+    print(Fore.BLUE)
+
     print("Which player would you like to edit?")
     playerIndex = input()
     if not playerIndex.isdigit():
@@ -304,8 +322,118 @@ def set_input_player_values():
         return
     players[playerIndex][1] = int(lives)
 
+def delete_player(): #!!! Must alter indeces in matches when deleting player
+    display_players()
+    print(Fore.BLUE)
 
+    print("Which player would you like to delete?")
+    playerIndex = input()
+    if not playerIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
 
+    playerIndex = int(playerIndex)
+    if not playerIndex < len(players):
+        print(Fore.RED + "There are not that many players" + Fore.BLUE)
+        return
+    
+    players.pop(playerIndex)
+
+def set_input_ongoing_match_values():
+    display_ongoing_matches()
+    print(Fore.BLUE)
+
+    print("Which match would you like to edit?")
+    matchIndex = input()
+    if not matchIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    matchIndex = int(matchIndex)
+    if not matchIndex < len(ongoingMatches):
+        print(Fore.RED + "There are not that many ongoing matches" + Fore.BLUE)
+        return
+
+    display_players()
+    print(Fore.BLUE)
+
+    print("What is the first player's index?")
+    p1Index = input()
+    if not p1Index.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+    print("What is the second player's index?")
+    p2Index = input()
+    if not p2Index.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    ongoingMatches[matchIndex] = [int(p1Index), int(p2Index)]
+
+def delete_ongoing_match():
+    display_ongoing_matches()
+    print(Fore.BLUE)
+
+    print("Which match would you like to delete?")
+    matchIndex = input()
+    if not matchIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    matchIndex = int(matchIndex)
+    if not matchIndex < len(ongoingMatches):
+        print(Fore.RED + "There are not that many ongoing matches" + Fore.BLUE)
+        return
+    
+    ongoingMatches.pop(matchIndex)
+
+def set_input_complete_match_values():
+    display_match_results() #!!! Need to show indeces
+    print(Fore.BLUE)
+
+    print("Which match would you like to edit?")
+    matchIndex = input()
+    if not matchIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    matchIndex = int(matchIndex)
+    if not matchIndex < len(completeMatches):
+        print(Fore.RED + "There are not that many complete matches" + Fore.BLUE)
+        return
+
+    display_players()
+    print(Fore.BLUE)
+
+    print("What is the winning player's index?")
+    p1Index = input()
+    if not p1Index.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+    print("What is the losing player's index?")
+    p2Index = input()
+    if not p2Index.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    completeMatches[matchIndex] = [int(p1Index), int(p2Index)]
+
+def delete_complete_match():
+    display_match_results() #!!! Need to show indeces
+    print(Fore.BLUE)
+
+    print("Which match would you like to delete?")
+    matchIndex = input()
+    if not matchIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    matchIndex = int(matchIndex)
+    if not matchIndex < len(ongoingMatches):
+        print(Fore.RED + "There are not that many complete matches" + Fore.BLUE)
+        return
+    
+    completeMatches.pop(matchIndex)
 
 # def display_best_matchups(numFirstPlayers: int, numSecondPlayers: int):
 #     matchups = []
