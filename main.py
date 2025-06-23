@@ -1,11 +1,12 @@
 from colorama import Fore, Back, Style
 
-players = [] # player = [matches, lives]
+players = [] # player = [matches, lives, name]
 ongoingMatches = [] # match = [playerIndex1, playerIndex2]
 completeMatches = [] # match = [playerIndexWin, playerIndexLose]
 
 def main():
     # Show the main menu
+    print(Style.RESET_ALL)
     print("Welcome to the Swiss Tournament Matchup Generator")
     menu()
 
@@ -29,7 +30,6 @@ def menu():
         print("0) Exit Program")
         print("")
 
-
         choice = input()
         if choice.isdigit():
             choice = int(choice)
@@ -41,16 +41,20 @@ def menu():
                     add_players_menu()
                 case 2:
                     display_players()
-                # case 3:
-                #     generate_matchups_menu()
+                case 3:
+                    generate_matchups_menu()
                 case 4:
+                    display_players()
                     set_ongoing_match()
                 case 5:
                     display_ongoing_matches()
                 case 6:
+                    display_ongoing_matches()
                     set_match_result()
                 case 7:
                     display_match_results()
+                case 91:
+                    secret_menu()
                 case _:
                     print(Fore.RED + "That was not a valid option")
                     print(Style.RESET_ALL)
@@ -67,25 +71,65 @@ def add_players_menu():
         print(Style.RESET_ALL)
         return
 
-    numPlayersInt = int(numPlayers)
-    add_players(numPlayersInt)
-    print(Fore.GREEN + numPlayers + " player added successfully!")
-    print(Style.RESET_ALL)
-
-def add_players(numPlayers: int):
+    numPlayers = int(numPlayers)
     for i in range(numPlayers):
-        players.append([0,2])
+        add_player_menu()
+
+    print(Fore.GREEN + str(numPlayers) + " player added successfully!")
+    print(Style.RESET_ALL)
+def add_player_menu():
+    print("What is this player's name?")
+    name = input()
+    players.append([0, 2, name])
 
 def display_players():
-    print(Fore.YELLOW + f"{"Index":^10} {"Matches":^10} {"Lives":^10}")
+    print(Fore.YELLOW + f"{"Index":^10} {"Name":^20} {"Matches":^10} {"Lives":^10}")
     for i in range(len(players)):
         matches = players[i][0]
+        name = players[i][2]
         lives = players[i][1]
         if lives == 0:
-            print(Fore.RED + f"{i:^10} {matches:^10} {lives:^10}" + Fore.YELLOW)
+            print(Fore.RED + f"{i:^10} {name:^20} {matches:^10} {lives:^10}" + Fore.YELLOW)
         else:
-            print(f"{i:^10} {matches:^10} {lives:^10}")
+            print(f"{i:^10} {name:^20} {matches:^10} {lives:^10}")
     print(Style.RESET_ALL)
+
+# def generate_matchups_menu():
+#     #!!! Think deeply about how this menu ought to work
+#     keepgoing = True
+#     while keepgoing:
+#         print("")
+#         print("What matchup would you like to generate?")
+#         print("1) Best Matchup")
+#         print("2) Best Matchups With Player")
+
+#         print("0) Exit Matchup Generation")
+#         print("")
+
+
+#         choice = input()
+#         if choice.isdigit():
+#             choice = int(choice)
+#             match choice:
+#                 case 0:
+#                     keepgoing = False
+#                 case 1:
+#                     print("How many first players should by tried?")
+#                     numFirstPlayers = input()
+#                     print("How many second players should be tried?")
+#                     numSecondPlayers = input()
+
+#                     if numFirstPlayers.isdigit() and numSecondPlayers.isdigit():
+#                         numFirstPlayers = int(numFirstPlayers)
+#                         numSecondPlayers = int(numSecondPlayers)
+#                         display_best_matchups(numFirstPlayers, numSecondPlayers)
+#                     else:
+#                         print("Input numbers stupid")
+#                 case _:
+#                     print("That was not a valid option")
+#         else:
+#             print("That was not a valid option")
+
 
 def set_ongoing_match():
     # Have the player type the indeces of two players and save it as an ongoing match
@@ -114,7 +158,6 @@ def set_ongoing_match():
         print(Fore.RED + "The two players must be different")
         print(Style.RESET_ALL)
         return        
-
     for match in ongoingMatches:
         if (player1Index in match) or (player2Index in match):
             print(Fore.RED + "One of those players is already in an ongoing match")
@@ -122,18 +165,21 @@ def set_ongoing_match():
             return
 
     ongoingMatches.append([player1Index, player2Index])
-    print(Fore.GREEN + "The match between " + str(player1Index) + " and " + str(player2Index) + " has been added!")
+    print(Fore.GREEN + "The match between " + str(player1Index) + " " + players[player1Index][2] + " and " + str(player2Index) + " " + players[player2Index][2] + " has been added!")
     print(Style.RESET_ALL)
 
 def display_ongoing_matches():
-    print(Fore.YELLOW + f"{"Index":^5}" + f"{"Matchup":^20}")
+    print(Fore.YELLOW + f"{"Index":^5}" + f"{"Matchup":^30}")
     for matchIndex in range(len(ongoingMatches)):
-        print(f"{str(matchIndex):^5}" + f"{str(ongoingMatches[matchIndex][0]) + " is facing " + str(ongoingMatches[matchIndex][1]):^20}")
+        p1Index = ongoingMatches[matchIndex][0]
+        p1Name = players[p1Index][2]
+        p2Index = ongoingMatches[matchIndex][1]
+        p2Name = players[p2Index][2]
+        print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " is facing " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
 
 def set_match_result():
-    # List the ongoing matches with indeces and ask the player which to resolve
-    display_ongoing_matches()
+    # Ask the player which to resolve
     print("Which match would you like to resolve?")
     matchChoice = input()
     if not matchChoice.isdigit():
@@ -180,46 +226,87 @@ def set_match_result():
     ongoingMatches.pop(matchChoice)
 
 def display_match_results():
-    # Display a list of every completed match in completeMatches
-    print(Fore.YELLOW)
+    print(Fore.YELLOW + "Results")
     for match in completeMatches:
-        print(str(match[0]) + " defeated " + str(match[1]))
+        p1Index = match[0]
+        p1Name = players[p1Index][2]
+        p2Index = match[1]
+        p2Name = players[p2Index][2]
+        print(f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
 
-# def generate_matchups_menu():
-#     keepgoing = True
-#     while keepgoing:
-#         print("")
-#         print("What matchup would you like to generate?")
-#         print("1) Best Matchups")
-#         print("2) Best Matchups With Player")
-
-#         print("0) Exit Matchup Generation")
-#         print("")
 
 
-#         choice = input()
-#         if choice.isdigit():
-#             choice = int(choice)
-#             match choice:
-#                 case 0:
-#                     keepgoing = False
-#                 case 1:
-#                     print("How many first players should by tried?")
-#                     numFirstPlayers = input()
-#                     print("How many second players should be tried?")
-#                     numSecondPlayers = input()
+    # Display a list of every completed match in completeMatches
+    # print(Fore.YELLOW)
+    # for match in completeMatches:
+    #     print(str(match[0]) + " defeated " + str(match[1]))
+    # print(Style.RESET_ALL)
 
-#                     if numFirstPlayers.isdigit() and numSecondPlayers.isdigit():
-#                         numFirstPlayers = int(numFirstPlayers)
-#                         numSecondPlayers = int(numSecondPlayers)
-#                         display_best_matchups(numFirstPlayers, numSecondPlayers)
-#                     else:
-#                         print("Input numbers stupid")
-#                 case _:
-#                     print("That was not a valid option")
-#         else:
-#             print("That was not a valid option")
+
+def secret_menu(): #!!! To be used to edit matches as well
+    print(Fore.BLUE + "Welcome to the Secret Area!")
+
+    keepgoing = True
+    while keepgoing:
+        display_players()
+
+        print(Fore.BLUE)
+        print("What would you like to edit?")
+
+        print("1) Player")
+        print("0) Exit Secret Area")
+        print("")
+
+        choice = input()
+        if choice.isdigit():
+            choice = int(choice)
+            match choice:
+                case 0:
+                    keepgoing = False
+                    print(Style.RESET_ALL)
+
+                case 1:
+                    set_input_player_values()
+                    
+                case _:
+                    print(Fore.RED + "That was not a valid option" + Fore.BLUE)
+        else:
+            print(Fore.RED + "That was not a valid option" + Fore.BLUE)
+
+def set_input_player_values():
+    print("Which player would you like to edit?")
+    playerIndex = input()
+    if not playerIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+
+    playerIndex = int(playerIndex)
+    if not playerIndex < len(players):
+        print(Fore.RED + "There are not that many players" + Fore.BLUE)
+        return
+
+    print("What is their new name?")
+    name = input()
+    players[playerIndex][2] = name
+
+    print("What is their new 'Matches'?")
+    matches = input()
+    if not matches.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+    players[playerIndex][0] = int(matches)
+
+    print("What is their new 'Lives'?")
+    lives = input()
+    if not lives.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+    players[playerIndex][1] = int(lives)
+
+
+
+
 # def display_best_matchups(numFirstPlayers: int, numSecondPlayers: int):
 #     matchups = []
 
