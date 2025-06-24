@@ -1,6 +1,7 @@
 from colorama import Fore, Back, Style
 from functools import cmp_to_key
 import copy
+import random
 
 players = [] # player = [matches, lives, name]
 ongoingMatches = [] # match = [playerIndex1, playerIndex2]
@@ -58,11 +59,11 @@ def menu():
                 case 1:
                     add_players_menu()
                 case 2:
-                    display_players(players)
+                    display_players(list(range(len(players))))
                 case 3:
                     generate_matchups_menu()
                 case 4:
-                    display_players(players) #!!! Should not show players that are dead or in ongoing matches
+                    display_unoccupied_players()
                     set_ongoing_match()
                 case 5:
                     display_ongoing_matches()
@@ -102,16 +103,17 @@ def add_player_menu():
     players.append([0, 2, name])
 
 # 2) Display Players
-def display_players(playerList):
+def display_players(playerIndecesList):
     print(Fore.YELLOW + f"{"Index":^10} {"Name":^20} {"Matches":^10} {"Lives":^10}")
-    for i in range(len(playerList)):
-        matches = playerList[i][0]
-        name = playerList[i][2]
-        lives = playerList[i][1]
+    for playerIndex in playerIndecesList:
+        player = players[playerIndex]
+        matches = player[0]
+        name = player[2]
+        lives = player[1]
         if lives == 0:
-            print(Fore.RED + f"{i:^10} {name:^20} {matches:^10} {lives:^10}" + Fore.YELLOW)
+            print(Fore.RED + f"{playerIndex:^10} {name:^20} {matches:^10} {lives:^10}" + Fore.YELLOW)
         else:
-            print(f"{i:^10} {name:^20} {matches:^10} {lives:^10}")
+            print(f"{playerIndex:^10} {name:^20} {matches:^10} {lives:^10}")
     print(Style.RESET_ALL)
 
 # 3) Generate Matchups
@@ -147,19 +149,16 @@ def display_primed_players():
     primedPlayerIndeces = list(range(len(players)))
     primedPlayerIndeces = sorted(primedPlayerIndeces, key=cmp_to_key(compare))
 
-    primedPlayers = []
+    print(Fore.YELLOW + f"{"Index":^10} {"Name":^20} {"Matches":^10} {"Lives":^10}")
     for playerIndex in primedPlayerIndeces:
-        primedPlayers.append(players[playerIndex])
-
-    print(Fore.YELLOW + f"{"Name":^20} {"Matches":^10} {"Lives":^10}")
-    for i in range(len(primedPlayers)):
-        matches = primedPlayers[i][0]
-        name = primedPlayers[i][2]
-        lives = primedPlayers[i][1]
+        player = players[playerIndex]
+        matches = player[0]
+        name = player[2]
+        lives = player[1]
         if lives == 0:
-            print(Fore.RED + f"{name:^20} {matches:^10} {lives:^10}" + Fore.YELLOW)
+            print(Fore.RED + f"{playerIndex:^10} {name:^20} {matches:^10} {lives:^10}" + Fore.YELLOW)
         else:
-            print(f"{name:^20} {matches:^10} {lives:^10}")
+            print(f"{playerIndex:^10} {name:^20} {matches:^10} {lives:^10}")
     print(Style.RESET_ALL)
 
 def compare(p1Index, p2Index):
@@ -225,7 +224,7 @@ def best_matchup_menu():
         else:
             print("That was not a valid option")
 
-def find_primed_player_index(excludeIndeces = [], illegalPastOpponentIndex = -1): #!!!
+def find_primed_player_index(excludeIndeces = [], illegalPastOpponentIndex = -1):
     # Finds the player with the fewest matches and fewest lives that is alive, not in exlcudeIndeces, is not illegalPastOpponent, 
     # not in an ongoing match. Prioritize players that have not faced illegalPastOpponent, but it's okay if there are no other options.
     # If impossible, returns -1
@@ -243,8 +242,23 @@ def find_primed_player_index(excludeIndeces = [], illegalPastOpponentIndex = -1)
 
     # Find the most primed player of the remaining list
     if len(eligiblePlayerIndeces) > 0:
+        # Get list of players with same matches and lives as most primed player in eligiblePlayers
         eligiblePlayerIndeces = sorted(eligiblePlayerIndeces, key=cmp_to_key(compare)) 
-        primedPlayerIndex = eligiblePlayerIndeces[0] #!!! Should be random
+
+        bestEligiblePlayerIndeces = [eligiblePlayerIndeces[0]]
+        bestMatches = players[eligiblePlayerIndeces[0]][0]
+        bestLives = players[eligiblePlayerIndeces[0]][1]
+
+        for playerIndex in eligiblePlayerIndeces:
+            matches = players[playerIndex][0]
+            lives = players[playerIndex][1]
+            if matches == bestMatches and lives == bestLives:
+                bestEligiblePlayerIndeces.append(playerIndex)
+            else:
+                break
+        
+        # Choose randomly from the remaining choices
+        primedPlayerIndex = random.choice(bestEligiblePlayerIndeces)
 
     return primedPlayerIndex
 
@@ -260,13 +274,12 @@ def get_living_players(playerIndecesList):
 def get_unoccupied_players(playerIndecesList, ongoingMatchList):
     newPlayerIndecesList = []
     for playerIndex in playerIndecesList:
-        player = players[playerIndex]
-        playerInMatch = False
+        isPlayerInMatch = False
         for match in ongoingMatchList:
-            if player in match:
-                playerInMatch = True
+            if playerIndex in match:
+                isPlayerInMatch = True
                 break
-        if playerInMatch:
+        if isPlayerInMatch:
             continue
         newPlayerIndecesList.append(playerIndex)
     return newPlayerIndecesList
@@ -302,6 +315,13 @@ def get_fewest_times_played_opponent(playerIndecesList, opponentIndex):
     return newPlayerIndecesList
 
 # 4) Set Ongoing Match
+def display_unoccupied_players():
+    eligiblePlayers = list(range(len(players)))
+    eligiblePlayers = get_living_players(eligiblePlayers)
+    eligiblePlayers = get_unoccupied_players(eligiblePlayers, ongoingMatches)
+
+    display_players(eligiblePlayers)
+
 def set_ongoing_match():
     # Have the player type the indeces of two players and save it as an ongoing match
     # Check if the pairing is legal (i.e. neither player is already in a match)
@@ -464,7 +484,7 @@ def secret_menu():
             print(Fore.RED + "That was not a valid option" + Fore.BLUE)
 
 def set_input_player_values():
-    display_players(players)
+    display_players(list(range(len(players))))
     print(Fore.BLUE)
 
     print("Which player would you like to edit?")
@@ -497,7 +517,7 @@ def set_input_player_values():
     players[playerIndex][1] = int(lives)
 
 def delete_player(): #!!! Must alter indeces in matches when deleting player
-    display_players(players)
+    display_players(list(range(len(players))))
     print(Fore.BLUE)
 
     print("Which player would you like to delete?")
@@ -528,7 +548,7 @@ def set_input_ongoing_match_values():
         print(Fore.RED + "There are not that many ongoing matches" + Fore.BLUE)
         return
 
-    display_players(players)
+    display_players(list(range(len(players))))
     print(Fore.BLUE)
 
     print("What is the first player's index?")
@@ -576,7 +596,7 @@ def set_input_complete_match_values():
         print(Fore.RED + "There are not that many complete matches" + Fore.BLUE)
         return
 
-    display_players(players)
+    display_players(list(range(len(players))))
     print(Fore.BLUE)
 
     print("What is the winning player's index?")
