@@ -3,6 +3,8 @@ from functools import cmp_to_key
 import copy
 import random
 
+start_lives = 2
+
 players = [] # player = [matches, lives, name]
 ongoingMatches = [] # match = [playerIndex1, playerIndex2]
 completeMatches = [] # match = [playerIndexWin, playerIndexLose]
@@ -70,7 +72,7 @@ def menu():
                     display_ongoing_matches()
                     set_match_result()
                 case 7:
-                    display_match_results()
+                    display_match_results_menu()
                 case 91:
                     secret_menu()
                 case _:
@@ -110,7 +112,7 @@ def add_players_menu():
 def add_player_menu():
     print("What is this player's name?")
     name = input()
-    players.append([0, 2, name])
+    players.append([0, start_lives, name])
 
 # 2) Display Players
 def display_players(playerIndecesList):
@@ -437,7 +439,44 @@ def set_match_result():
     ongoingMatches.pop(matchChoice)
 
 # 7) Display Match Results
-def display_match_results():
+def display_match_results_menu():
+    keepgoing = True
+    while keepgoing:
+        print(Fore.MAGENTA + "Which results would you like to see?")
+        print("1) All Results")
+        print("2) Results Involving a Player")
+        print("0) Exit Display Match Results Menu")
+
+        choice = input()
+        if choice.isdigit():
+            choice = int(choice)
+            match choice:
+                case 0:
+                    keepgoing = False
+                case 1:
+                    display_match_results()
+                    keepgoing = False
+                case 2:
+                    display_players(list(range(len(players))))
+                    print("Which player's results would you like to see?")
+                    playerIndex = input()
+                    if not playerIndex.isdigit():
+                        print(Fore.RED + "That was not a valid option")
+                        print(Style.RESET_ALL)
+                        keepgoing = False
+                    playerIndex = int(playerIndex)
+                    if not playerIndex < len(players):
+                        print(Fore.RED + "That was not a valid option")
+                        print(Style.RESET_ALL)
+                        keepgoing = False
+
+                    display_match_results(playerIndex)
+                    keepgoing = False
+                case _:
+                    print(Fore.RED + "That was not a valid option")
+                    print(Style.RESET_ALL)
+
+def display_match_results(playerIndex = -1):
     print(Fore.YELLOW + f"{"Index":^5}" + f"{"Results":^30}")
     for matchIndex in range(len(completeMatches)):
         match = completeMatches[matchIndex]
@@ -447,16 +486,9 @@ def display_match_results():
         p2Index = match[1]
         p2Name = get_player_name(p2Index)
 
-        print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
+        if playerIndex == -1 or (playerIndex != -1 and p1Index == playerIndex or p2Index == playerIndex):
+            print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
-
-
-
-    # Display a list of every completed match in completeMatches
-    # print(Fore.YELLOW)
-    # for match in completeMatches:
-    #     print(str(match[0]) + " defeated " + str(match[1]))
-    # print(Style.RESET_ALL)
 
 
 # 91) Secret Menu
