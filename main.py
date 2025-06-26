@@ -10,8 +10,8 @@ completeMatches = [] # match = [playerIndexWin, playerIndexLose]
 def main():
     # Show the main menu
     print(Style.RESET_ALL)
-    print("Welcome to the Swiss Tournament Matchup Generator")
-    auto_populate_players()
+    print("Welcome to the Swiss Tournament Manager")
+    # auto_populate_players()
     menu()
 
 def auto_populate_players():
@@ -54,8 +54,7 @@ def menu():
             choice = int(choice)
             match choice:
                 case 0:
-                    keepgoing = False
-                    print("Good Luck!")
+                    keepgoing = exit_menu()
                 case 1:
                     add_players_menu()
                 case 2:
@@ -80,6 +79,17 @@ def menu():
         else:
             print(Fore.RED + "That was not a valid option")
             print(Style.RESET_ALL)
+
+# 0) Exit Program
+def exit_menu():
+    print("Are you sure you want to exit?")
+    print("Type 'Y' if you'd like to exit.")
+    choice = input()
+    if choice == 'Y':
+        print("Thank you for using the Swiss Tournament Manager")
+        return False
+    print("That is not 'Y'.")
+    return True
 
 # 1) Add Players
 def add_players_menu():
@@ -206,6 +216,8 @@ def best_matchup_menu():
         print("1) Remove Player 1")
         print("2) Remove Player 2\n")
 
+        print("3) Add this match to the ongoing matches\n")
+
         print("0) Exit matchup Menu")
         print(Style.RESET_ALL)
 
@@ -219,6 +231,10 @@ def best_matchup_menu():
                     excludeIndeces.append(index1)
                 case 2:
                     excludeIndeces.append(index2)
+                case 3:
+                    ongoingMatches.append([index1, index2])
+                    print(Fore.GREEN + "Match Successfully added!" + Style.RESET_ALL)
+                    keepgoing = False
                 case _:
                     print("That was not a valid option")
         else:
@@ -364,9 +380,11 @@ def display_ongoing_matches():
     print(Fore.YELLOW + f"{"Index":^5}" + f"{"Matchup":^30}")
     for matchIndex in range(len(ongoingMatches)):
         p1Index = ongoingMatches[matchIndex][0]
-        p1Name = players[p1Index][2]
+        p1Name = get_player_name(p1Index)
+
         p2Index = ongoingMatches[matchIndex][1]
-        p2Name = players[p2Index][2]
+        p2Name = get_player_name(p2Index)
+
         print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " is facing " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
 
@@ -420,13 +438,16 @@ def set_match_result():
 
 # 7) Display Match Results
 def display_match_results():
-    print(Fore.YELLOW + "Results")
-    for match in completeMatches:
+    print(Fore.YELLOW + f"{"Index":^5}" + f"{"Results":^30}")
+    for matchIndex in range(len(completeMatches)):
+        match = completeMatches[matchIndex]
         p1Index = match[0]
-        p1Name = players[p1Index][2]
+        p1Name = get_player_name(p1Index)
+
         p2Index = match[1]
-        p2Name = players[p2Index][2]
-        print(f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
+        p2Name = get_player_name(p2Index)
+
+        print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
 
 
@@ -453,7 +474,8 @@ def secret_menu():
         print("4) Delete Ongoing Match\n")
 
         print("5) Complete Matches")
-        print("6) Delete Complete Match\n")
+        print("6) Delete Complete Match")
+        print("7) Undo Complete Match\n")
 
         print("0) Exit Secret Area")
         print("")
@@ -477,6 +499,8 @@ def secret_menu():
                     set_input_complete_match_values()
                 case 6:
                     delete_complete_match()
+                case 7:
+                    undo_complete_match()
                     
                 case _:
                     print(Fore.RED + "That was not a valid option" + Fore.BLUE)
@@ -516,7 +540,7 @@ def set_input_player_values():
         return
     players[playerIndex][1] = int(lives)
 
-def delete_player(): #!!! Must alter indeces in matches when deleting player
+def delete_player():
     display_players(list(range(len(players))))
     print(Fore.BLUE)
 
@@ -530,7 +554,26 @@ def delete_player(): #!!! Must alter indeces in matches when deleting player
     if not playerIndex < len(players):
         print(Fore.RED + "There are not that many players" + Fore.BLUE)
         return
-    
+
+    # Alter player indeces to match with new indeces. Delete matches containing the deleted
+    for match in ongoingMatches:
+        if match[0] > playerIndex:
+            match[0] -= 1
+        elif match[0] == playerIndex:
+            match[0] = -1
+        if match[1] > playerIndex:
+            match[1] -= 1
+        elif match[1] == playerIndex:
+            match[1] = -1
+    for match in completeMatches:
+        if match[0] > playerIndex:
+            match[0] -= 1
+        elif match[0] == playerIndex:
+            match[0] = -1
+        if match[1] > playerIndex:
+            match[1] -= 1
+        elif match[1] == playerIndex:
+            match[1] = -1
     players.pop(playerIndex)
 
 def set_input_ongoing_match_values():
@@ -582,7 +625,7 @@ def delete_ongoing_match():
     ongoingMatches.pop(matchIndex)
 
 def set_input_complete_match_values():
-    display_match_results() #!!! Need to show indeces
+    display_match_results()
     print(Fore.BLUE)
 
     print("Which match would you like to edit?")
@@ -613,7 +656,7 @@ def set_input_complete_match_values():
     completeMatches[matchIndex] = [int(p1Index), int(p2Index)]
 
 def delete_complete_match():
-    display_match_results() #!!! Need to show indeces
+    display_match_results()
     print(Fore.BLUE)
 
     print("Which match would you like to delete?")
@@ -623,12 +666,44 @@ def delete_complete_match():
         return
 
     matchIndex = int(matchIndex)
-    if not matchIndex < len(ongoingMatches):
+    if not matchIndex < len(completeMatches):
         print(Fore.RED + "There are not that many complete matches" + Fore.BLUE)
         return
     
     completeMatches.pop(matchIndex)
 
+def undo_complete_match():
+    display_match_results()
+    print(Fore.BLUE)
+
+    print("Which match would you like to undo?")
+    matchIndex = input()
+    if not matchIndex.isdigit():
+        print(Fore.RED + "That was not a valid input" + Fore.BLUE)
+        return
+    matchIndex = int(matchIndex)
+    if not matchIndex < len(completeMatches):
+        print(Fore.RED + "There are not that many complete matches" + Fore.BLUE)
+        return
+
+
+    match = completeMatches[matchIndex]
+    # Increase the loser's number of lives and decrease num matches of both players
+    players[match[1]][1] += 1
+
+    players[match[0]][0] -= 1
+    players[match[1]][0] -= 1
+
+    # Add this match to ongoing matches and remove it from complete matches
+    ongoingMatches.append(match)
+    completeMatches.pop(matchIndex)
+
+# Helper Funcs
+def get_player_name(playerIndex: int):
+    name = "Unknown"
+    if playerIndex >= 0 and len(players) > playerIndex:
+        name = players[playerIndex][2]
+    return name
 
 if __name__=='__main__':
     main()
