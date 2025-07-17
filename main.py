@@ -9,6 +9,8 @@ players = [] # player = [matches, lives, name]
 ongoingMatches = [] # match = [playerIndex1, playerIndex2]
 completeMatches = [] # match = [playerIndexWin, playerIndexLose]
 
+fileNum = 0 # Number of saved tournament files that have been created. Should be cleaned out manually to avoid data loss
+
 def main():
     # Show the main menu
     print(Style.RESET_ALL)
@@ -48,6 +50,8 @@ def menu():
         print("6) Set Match Result")
         print("7) Display Match Results\n")
 
+        print("8) Save Tournament\n")
+
         print("0) Exit Program")
         print(Style.RESET_ALL)
 
@@ -73,6 +77,8 @@ def menu():
                     set_match_result()
                 case 7:
                     display_match_results_menu()
+                case 8:
+                    save_tournament()
                 case 91:
                     secret_menu()
                 case _:
@@ -490,6 +496,73 @@ def display_match_results(playerIndex = -1):
             print(f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}")
     print(Style.RESET_ALL)
 
+# 8) Save Tournament
+def save_tournament():
+    # Saves all the players, ongoing matches, and results into a hastily formatted text file
+    global fileNum
+
+    fileName = "tourney" + str(fileNum) + ".txt"
+
+    try:
+        with open(fileName, "x") as f:
+            f.write(save_players())
+            f.write(save_ongoing_matches())
+            f.write(save_match_results())
+    except FileExistsError:
+        with open(fileName, "w") as f:
+            f.write(save_players())
+            f.write(save_ongoing_matches())
+            f.write(save_match_results())
+
+    fileNum+=1
+    print("Tournament has been saved to " + fileName)
+
+def save_players():
+    text = ""
+    text += "\nPLAYERS\n"
+
+    text += f"{"Index":^10} {"Name":^20} {"Matches":^10} {"Lives":^10}" + '\n'
+    for playerIndex in list(range(len(players))):
+        player = players[playerIndex]
+        matches = player[0]
+        name = player[2]
+        lives = player[1]
+        text += f"{playerIndex:^10} {name:^20} {matches:^10} {lives:^10}" + '\n'
+
+    return text
+
+def save_ongoing_matches():
+    text = ""
+    text += "\nONGOING MATCHES\n"
+
+    text += f"{"Index":^5}" + f"{"Matchup":^30}" + '\n'
+    for matchIndex in range(len(ongoingMatches)):
+        p1Index = ongoingMatches[matchIndex][0]
+        p1Name = get_player_name(p1Index)
+
+        p2Index = ongoingMatches[matchIndex][1]
+        p2Name = get_player_name(p2Index)
+
+        text += f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " is facing " + str(p2Index) + " " + p2Name:^30}" + '\n'
+
+    return text
+
+def save_match_results():
+    text = ""
+    text += "\nMATCH RESULTS\n"
+
+    text += f"{"Index":^5}" + f"{"Results":^30}" + '\n'
+    for matchIndex in range(len(completeMatches)):
+        match = completeMatches[matchIndex]
+        p1Index = match[0]
+        p1Name = get_player_name(p1Index)
+
+        p2Index = match[1]
+        p2Name = get_player_name(p2Index)
+
+        text += f"{str(matchIndex):^5}" + f"{str(p1Index) + " " + p1Name + " defeated " + str(p2Index) + " " + p2Name:^30}" + '\n'
+
+    return text
 
 # 91) Secret Menu
 def secret_menu():
